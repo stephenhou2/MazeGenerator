@@ -4,117 +4,66 @@ using UnityEngine;
 
 public class MapGenerator:MonoBehaviour
 {
+    #region  Def
     public int WorkSpaceWidth = 100;
     public int WorkSpaceHeight = 80;
     public int RoomMaxTry = 100;
 
-    public GameObject RoomNode;
+    public int RoomMinSize_Half = 5;
+    public int RoomMaxSize_Half = 7;
+    #endregion
 
-    private List<Room> _allRooms = new List<Room>();
+    public MapView mv;
+    public MapData md = new MapData();
 
-    private int[,] _mapCellType;
-
-    private bool CheckRoomCanCreate(Vector2Int pos, int width, int height)
-    {
-        if (    pos.x - width < 0 
-            || pos.x + width >= WorkSpaceWidth
-            || pos.y - height < 0 
-            || pos.y + height >= WorkSpaceHeight)
-        {
-            return false;
-        }
-
-        foreach (Room room in _allRooms)
-        {
-            if (Mathf.Abs(room.Pos.x - pos.x) + 1 < room.Width + width
-                && Mathf.Abs(room.Pos.y - pos.y) + 1 < room.Height + height)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void AddRoom(Vector2Int pos, int width, int height)
-    {
-        Room room = new Room(pos, width, height);
-         _allRooms.Add(room);
-
-        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.transform.parent = RoomNode.transform;
-
-        quad.transform.position = new Vector3(pos.x+ width / 2.0f,pos.y+ height / 2.0f,0);
-        quad.transform.localScale = new Vector3(width, height, 1);
-        quad.transform.rotation = Quaternion.identity;
-
-    }
-
-    [ContextMenu("Test")]
-    private void Test()
-    {
-        for(int i = RoomNode.transform.childCount-1; i>=0;i--)
-        {
-            DestroyImmediate(RoomNode.transform.GetChild(i).gameObject);
-        }
-
-        GenerateMapRooms(3, 7, RoomMaxTry);
-    }
-
+    /// <summary>
+    /// 创建地牢房间
+    /// </summary>
+    /// <param name="minSize"></param>
+    /// <param name="maxSize"></param>
+    /// <param name="maxTry"></param>
     public void GenerateMapRooms(int minSize,int maxSize,int maxTry)
     {
-        _allRooms.Clear();
         int cnt = 0;
         while(cnt < maxTry)
         {
             // 房间的宽高
-            int width = Random.Range(minSize, maxSize);
-            int height = Random.Range(minSize, maxSize);
+            int width_half = Random.Range(minSize, maxSize);
+            int height_half = Random.Range(minSize, maxSize);
 
-            int offset = Mathf.RoundToInt(minSize / 2);
-            int randomPosX = Random.Range(offset, WorkSpaceWidth - offset);
-            int randomPosY = Random.Range(offset, WorkSpaceHeight - offset);
+            int randomPosX = Random.Range(1 + width_half + 1, WorkSpaceWidth - 1 - width_half - 1);
+            int randomPosY = Random.Range(1 + height_half + 1, WorkSpaceHeight - 1 - height_half - 1);
 
             Vector2Int pos = new Vector2Int(randomPosX, randomPosY);
-            //Vector2Int size = new Vector2Int(width, height);
-            if (CheckRoomCanCreate(pos, width, height))
+            if (md.TryAddRoom(pos, width_half, height_half))
             {
-                AddRoom(pos, width, height);
+                mv.AddRoomView(pos, width_half, height_half);
             }
 
             cnt++;
         }
     }
 
-
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
 #if UNITY_EDITOR
-    public bool ShowGridLine = true;
-
-    private void OnDrawGizmos()
+    [ContextMenu("Test")]
+    private void Test()
     {
-        if (ShowGridLine)
-        {
-            for (int i = 0; i < WorkSpaceHeight; i++)
-            {
-                Gizmos.DrawLine(new Vector3(0, i, 0), new Vector3(WorkSpaceWidth, i, 0));
-            }
-            for (int i = 0; i < WorkSpaceWidth; i++)
-            {
-                Gizmos.DrawLine(new Vector3(i, 0, 0), new Vector3(i, WorkSpaceHeight, 0));
-            }
-        }
+        // 1. 数据层，表现层重置
+        md.Reset();
+        mv.Reset();
+
+        // 2. 数据层重新初始化
+        md.InitializeMapData(WorkSpaceWidth, WorkSpaceHeight);
+        mv.InitializeMapView(WorkSpaceWidth, WorkSpaceHeight);
+
+        // 3. 生成地牢房间
+        GenerateMapRooms(RoomMinSize_Half,RoomMaxSize_Half, RoomMaxTry);
+
+        // 4.填充迷宫走廊
+
+
+
+        // 5.连接处挖洞
     }
 #endif
-
-
 }

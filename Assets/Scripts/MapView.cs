@@ -1,0 +1,65 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class MapView : MonoBehaviour
+{
+    public GameObject RoomNode;
+    private int WorkSpaceWidth;
+    private int WorkSpaceHeight;
+
+    public  void AddRoomView(Vector2Int pos, int halfWidth, int halfHeight)
+    {
+        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.transform.parent = RoomNode.transform;
+
+        quad.transform.position = new Vector3(pos.x , pos.y , 0);
+        quad.transform.localScale = new Vector3(1+2*halfWidth, 1+2*halfHeight, 1);
+        quad.transform.rotation = Quaternion.identity;
+    }
+
+    public void InitializeMapView(int mapWidth,int mapHeight)
+    {
+        WorkSpaceWidth = mapWidth;
+        WorkSpaceHeight = mapHeight;
+    }
+
+    public void Reset()
+    {
+        for (int i = RoomNode.transform.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(RoomNode.transform.GetChild(i).gameObject);
+        }
+    }
+
+
+#if UNITY_EDITOR
+
+    public bool ShowGridLine;
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+
+        Gizmos.DrawLine(new Vector3(0, 0, 0), new Vector3(WorkSpaceWidth, 0, 0));
+        Gizmos.DrawLine(new Vector3(0, 0, 0), new Vector3(0, WorkSpaceHeight, 0));
+        Gizmos.DrawLine(new Vector3(WorkSpaceWidth, 0, 0), new Vector3(WorkSpaceWidth, WorkSpaceHeight, 0));
+        Gizmos.DrawLine(new Vector3(0, WorkSpaceHeight, 0), new Vector3(WorkSpaceWidth, WorkSpaceHeight, 0));
+
+        if(ShowGridLine)
+        {
+            Gizmos.color = Color.grey;
+
+            for (int i = 1; i < WorkSpaceHeight-1; i++)
+            {
+                Gizmos.DrawLine(new Vector3(0, i, 0), new Vector3(WorkSpaceWidth, i, 0));
+            }
+            for (int i = 1; i < WorkSpaceWidth-1; i++)
+            {
+                Gizmos.DrawLine(new Vector3(i, 0, 0), new Vector3(i, WorkSpaceHeight, 0));
+            }
+        }
+    }
+
+#endif
+}
