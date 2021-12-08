@@ -44,9 +44,44 @@ public class MapGenerator:MonoBehaviour
         }
     }
 
+    private void GenerateMapMaze()
+    {
+        md.FloodFillMaze();
+    }
+
+    private void RefreshMapView()
+    {
+        List<Room> allRooms = md.GetAllRoomData();
+
+        foreach(Room room in allRooms)
+        {
+            mv.AddRoomView(room.Pos, room.Width_Half, room.Height_Half);
+        }
+
+        for(int i=0;i<WorkSpaceWidth;i++)
+        {
+            for(int j=0;j<WorkSpaceHeight;j++)
+            {
+                if(md.CheckIsWall(i,j))
+                {
+                    mv.AddWallView(new Vector2Int(i,j));
+                }
+            }
+        }
+    }
+
+
 #if UNITY_EDITOR
-    [ContextMenu("Test")]
-    private void Test()
+    [ContextMenu("ResetMap")]
+    private void ResetMap()
+    {
+        // 1. 数据层，表现层重置
+        md.Reset();
+        mv.Reset();
+    }
+
+    [ContextMenu("GenerateNewMap")]
+    private void GenerateNewMap()
     {
         // 1. 数据层，表现层重置
         md.Reset();
@@ -60,10 +95,13 @@ public class MapGenerator:MonoBehaviour
         GenerateMapRooms(RoomMinSize_Half,RoomMaxSize_Half, RoomMaxTry);
 
         // 4.填充迷宫走廊
-
-
+        GenerateMapMaze();
 
         // 5.连接处挖洞
+
+
+        // 6.更新表现层
+        RefreshMapView();
     }
 #endif
 }

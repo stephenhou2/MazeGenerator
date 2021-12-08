@@ -10,6 +10,16 @@ public class MapData
 
     private List<Room> _allRooms = new List<Room>();
 
+    public int[,] GetMapCellData()
+    {
+        return _mapCellType;
+    }
+
+    public List<Room> GetAllRoomData()
+    {
+        return _allRooms;
+    }
+
     private bool CheckRoomCanCreate(Vector2Int pos, int halfWidth, int halfHeight)
     {
         if (pos.x - halfWidth <= 0
@@ -57,15 +67,22 @@ public class MapData
         return false;
     }
 
-    private Vector2Int[] _neighbors = new Vector2Int[]
-    {
-        new Vector2Int(-1,0),
-        new Vector2Int(0,-1),
-        new Vector2Int(1,0),
-        new Vector2Int(0,1),
-    };
-
     private Queue<Vector2Int> _toHandle = new Queue<Vector2Int>();
+
+    public bool CheckIsWall (int x,int y)
+    {
+        // 超出工作区域
+        if (x < 0 || x >= _workSpaceWidth) return false;
+        if (y < 0 || y >= _workSpaceHeight) return false;
+
+        return _mapCellType[x, y] == MapDef.CELL_TYPE_WALL;
+    }
+
+    private Vector2Int[] RandomNeighbors()
+    {
+        int seed = Random.Range(0, 4);
+        return MapDef.NEIGHBORS_POOL[seed];
+    }
 
     /// <summary>
     /// 洪水填充算法生成迷宫走廊
@@ -75,22 +92,40 @@ public class MapData
     {
         _toHandle.Clear();
         _toHandle.Enqueue(start);
+        _mapCellType[start.x, start.y] = MapDef.CELL_TYPE_EMPTY;
 
-        while(_toHandle.Count > 0)
+        while (_toHandle.Count > 0)
         {
             Vector2Int pos = _toHandle.Dequeue();
-
-
+            Vector2Int[] neighbors = RandomNeighbors();
+            for(int i=0;i< neighbors.Length;i++)
+            {
+                // 走廊旁边要留一个格子当作墙，所以要向周围扩展两步
+                if (CheckIsWall(pos.x + neighbors[i].x,pos.y+ neighbors[i].y) 
+                    && CheckIsWall(pos.x + 2* neighbors[i].x,pos.y + 2* neighbors[i].y))
+                    {
+                        Vector2Int newPos1 = pos + neighbors[i];
+                        Vector2Int newPos2 = pos + 2*neighbors[i];
+                        _mapCellType[newPos1.x, newPos1.y] = MapDef.CELL_TYPE_EMPTY;
+                        _mapCellType[newPos2.x, newPos2.y] = MapDef.CELL_TYPE_EMPTY;
+                        _toHandle.Enqueue(newPos2);
+                        break;
+                    }
+            }
         }
     }
 
     public void FloodFillMaze()
     {
-        for (int i=1;i<_workSpaceWidth-1;i++)
-        { 
-            for(int  j=1;j<_workSpaceHeight-1;j++)
+        for (int i = 1; i < _workSpaceWidth - 1; i++)
+        {
+            for (int j = 1; j < _workSpaceHeight - 1; j++)
             {
-                if(_mapCellType[i,j] == MapDef.CELL_TYPE_WALL)
+                if (_mapCellType[i, j] == MapDef.CELL_TYPE_WALL
+                    && _mapCellType[i - 1, j] == MapDef.CELL_TYPE_WALL
+                    && _mapCellType[i + 1, j] == MapDef.CELL_TYPE_WALL
+                    && _mapCellType[i, j - 1] == MapDef.CELL_TYPE_WALL
+                    && _mapCellType[i, j + 1] == MapDef.CELL_TYPE_WALL)
                 {
                     FillMaze(new Vector2Int(i, j));
                 }
