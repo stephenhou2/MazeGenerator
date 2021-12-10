@@ -4,52 +4,36 @@ using UnityEngine;
 
 public class MapGenerator:MonoBehaviour
 {
-    #region  Def
+    [HideInInspector]
     public int WorkSpaceWidth = 100;
+
+    [HideInInspector]
     public int WorkSpaceHeight = 80;
+
+    [HideInInspector]
     public int RoomMaxTry = 100;
 
+    [HideInInspector]
     public int RoomMinSize_Half = 5;
+
+    [HideInInspector]
     public int RoomMaxSize_Half = 7;
-    #endregion
 
-    public MapView mv;
-    public MapData md = new MapData();
+    private MapView mv;
+    private MapData md;
 
-    /// <summary>
-    /// 创建地牢房间
-    /// </summary>
-    /// <param name="minSize"></param>
-    /// <param name="maxSize"></param>
-    /// <param name="maxTry"></param>
-    public void GenerateMapRooms(int minSize,int maxSize,int maxTry)
+    public void InitializeMapGenerator()
     {
-        int cnt = 0;
-        while(cnt < maxTry)
+        var viewNode = transform.Find("_MAP_VIEW");
+        if(viewNode != null)
         {
-            // 房间的宽高
-            int width_half = Random.Range(minSize, maxSize);
-            int height_half = Random.Range(minSize, maxSize);
-
-            int randomPosX = Random.Range(1 + width_half + 1, WorkSpaceWidth - 1 - width_half - 1);
-            int randomPosY = Random.Range(1 + height_half + 1, WorkSpaceHeight - 1 - height_half - 1);
-
-            Vector2Int pos = new Vector2Int(randomPosX, randomPosY);
-            if (md.TryAddRoom(pos, width_half, height_half))
-            {
-                mv.AddRoomView(pos, width_half, height_half);
-            }
-
-            cnt++;
+            mv = viewNode.GetComponent<MapView>();
         }
+
+        md = new MapData();
     }
 
-    private void GenerateMapMaze()
-    {
-        md.FloodFillMaze();
-    }
-
-    private void RefreshMapView()
+    public void RefreshMapView()
     {
         List<Room> allRooms = md.GetAllRoomData();
 
@@ -70,38 +54,50 @@ public class MapGenerator:MonoBehaviour
         }
     }
 
-
-#if UNITY_EDITOR
-    [ContextMenu("ResetMap")]
-    private void ResetMap()
+    public void ResetMap(int mapWidth,int mapHeight,int roomMinSizeHalf,int roomMaxSizeHalf,int roomMaxTry)
     {
+        WorkSpaceWidth = mapWidth;
+        WorkSpaceHeight = mapHeight;
+        RoomMinSize_Half = roomMinSizeHalf;
+        RoomMaxSize_Half = roomMaxSizeHalf;
+        RoomMaxTry = roomMaxTry;
+
         // 1. 数据层，表现层重置
-        md.Reset();
-        mv.Reset();
+        md.Reset(mapWidth,mapHeight);
+        mv.Reset(mapWidth, mapHeight);
     }
 
-    [ContextMenu("GenerateNewMap")]
-    private void GenerateNewMap()
+    public void GenerateMapRooms()
+    {
+        md.GenerateMapRooms(RoomMinSize_Half, RoomMaxSize_Half, RoomMaxTry);
+    }
+
+    public void GenerateMapMaze()
+    {
+        md.FloodFillMaze();
+    }
+
+    public void CarveConnection()
+    {
+
+    }
+
+    public void GenerateWholeMap()
     {
         // 1. 数据层，表现层重置
-        md.Reset();
-        mv.Reset();
-
-        // 2. 数据层重新初始化
-        md.InitializeMapData(WorkSpaceWidth, WorkSpaceHeight);
-        mv.InitializeMapView(WorkSpaceWidth, WorkSpaceHeight);
+        md.Reset(WorkSpaceWidth,WorkSpaceHeight);
+        mv.Reset(WorkSpaceWidth, WorkSpaceHeight);
 
         // 3. 生成地牢房间
-        GenerateMapRooms(RoomMinSize_Half,RoomMaxSize_Half, RoomMaxTry);
+        GenerateMapRooms();
 
         // 4.填充迷宫走廊
         GenerateMapMaze();
 
         // 5.连接处挖洞
-
+        CarveConnection();
 
         // 6.更新表现层
         RefreshMapView();
     }
-#endif
 }

@@ -92,6 +92,8 @@ public class MapData
         if (x < 0 || x >= _workSpaceWidth) return false;
         if (y < 0 || y >= _workSpaceHeight) return false;
 
+        if (_mapCellType == null) return false;
+
         return _mapCellType[x, y] == MapDef.CELL_TYPE_WALL;
     }
 
@@ -173,55 +175,97 @@ public class MapData
 
     public void FloodFillMaze()
     {
-        //for (int i = 0; i < _workSpaceWidth; i++)
-        //{
-        //    for (int j = 0; j < _workSpaceHeight; j++)
-        //    {
-        //        if (_mapCellType[i, j] == MapDef.CELL_TYPE_FLOOR)
-        //        {
-        //            FillMaze(new Vector2Int(i, j));
-        //        }
-        //    }
-        //}
-        FillMaze(new Vector2Int(1, 1));
+        if(_toHandle.Count > 0)
+        {
+            Vector2Int pos = _toHandle.Dequeue();
+            int[] neighbors = RandomNeighbors();
+            for (int i = 0; i < neighbors.Length; i++)
+            {
+                int direction = neighbors[i];
+                if (TryAddCorridor(pos, direction))
+                {
+                    _toHandle.Enqueue(pos + 2 * MapDef.OFFSET_MAP[direction]);
+                    break;
+                }
+            }
+        }
     }
 
-    public void InitializeMapData(int mapWidth,int mapHeight)
+    private void FindMazeStart()
+    {
+        for (int i = 0; i < _workSpaceWidth; i++)
+        {
+            for (int j = 0; j < _workSpaceHeight; j++)
+            {
+                if (_mapCellType[i, j] == MapDef.CELL_TYPE_WALL)
+                {
+                    _toHandle.Enqueue(new Vector2Int(i, j));
+                }
+            }
+        }
+    }
+
+    public void FloodFillMazeSingleStep()
+    {
+        if(_toHandle.Count == 0)
+        {
+            FindMazeStart();
+        }
+
+        if (_toHandle.Count == 0) return;
+
+        for(int i =0;i<MapDef.NEIGHBORS_MAP.Length;i++)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// 创建地牢房间
+    /// </summary>
+    /// <param name="minSize"></param>
+    /// <param name="maxSize"></param>
+    /// <param name="maxTry"></param>
+    public void GenerateMapRooms(int minSize, int maxSize, int maxTry)
+    {
+        int cnt = 0;
+        while (cnt < maxTry)
+        {
+            // 房间的宽高
+            int width_half = Random.Range(minSize, maxSize);
+            int height_half = Random.Range(minSize, maxSize);
+
+            int randomPosX = Random.Range(1 + width_half + 1, _workSpaceWidth - 1 - width_half - 1);
+            int randomPosY = Random.Range(1 + height_half + 1, _workSpaceHeight - 1 - height_half - 1);
+
+            Vector2Int pos = new Vector2Int(randomPosX, randomPosY);
+            TryAddRoom(pos, width_half, height_half);
+            cnt++;
+        }
+    }
+
+    private void InitializeMapData(int mapWidth,int mapHeight)
     {
         _workSpaceWidth = mapWidth;
         _workSpaceHeight = mapHeight;
         _mapCellType = new int[mapWidth, mapHeight];
 
-        // 先全部初始化为地板
+        // 先全部初始化为墙
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                _mapCellType[i, j] = MapDef.CELL_TYPE_FLOOR;
+                _mapCellType[i, j] = MapDef.CELL_TYPE_WALL;
             }
-        }
-
-        for (int i = 0; i < _workSpaceWidth; i++)
-        {
-            _mapCellType[i, 0] = MapDef.CELL_TYPE_WALL;
-        }
-        for (int i = 0; i < _workSpaceWidth; i++)
-        {
-            _mapCellType[i, _workSpaceHeight - 1] = MapDef.CELL_TYPE_WALL;
-        }
-        for (int i = 0; i < _workSpaceHeight; i++)
-        {
-            _mapCellType[0, i] = MapDef.CELL_TYPE_WALL;
-        }
-        for (int i = 0; i < _workSpaceHeight; i++)
-        {
-            _mapCellType[_workSpaceWidth - 1, i] = MapDef.CELL_TYPE_WALL;
         }
     }
 
-    public void Reset()
+    public void Reset(int mapWidth,int mapHeight)
     {
-        _mapCellType = null;
+        _workSpaceWidth = mapWidth;
+        _workSpaceHeight = mapHeight;
         _allRooms.Clear();
+
+        InitializeMapData(mapWidth, mapHeight);
     }
 }

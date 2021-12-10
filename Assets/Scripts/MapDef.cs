@@ -59,6 +59,14 @@ public static class MapDef
     public static Vector2Int LEFT = new Vector2Int(-1, 0);
     public static Vector2Int RIGHT = new Vector2Int(1, 0);
 
+    public static Vector2Int[] NEIGHBORS_MAP = new Vector2Int[]
+    {
+        UP, //up
+        DOWN , //down
+        LEFT, //left
+        RIGHT, //right
+    };
+
     public static Vector2Int[] OFFSET_MAP = new Vector2Int[]
     {
         UP, //up

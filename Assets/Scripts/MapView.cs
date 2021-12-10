@@ -38,13 +38,13 @@ public class MapView : MonoBehaviour
         //quad.hideFlags = HideFlags.HideInHierarchy;
     }
 
-    public void InitializeMapView(int mapWidth,int mapHeight)
+    private void InitializeMapView(int mapWidth,int mapHeight)
     {
         WorkSpaceWidth = mapWidth;
         WorkSpaceHeight = mapHeight;
     }
 
-    public void Reset()
+    public void Reset(int mapWidth, int mapHeight)
     {
         for (int i = RoomNode.transform.childCount - 1; i >= 0; i--)
         {
@@ -55,6 +55,8 @@ public class MapView : MonoBehaviour
         {
             DestroyImmediate(WallNode.transform.GetChild(i).gameObject);
         }
+
+        InitializeMapView(mapWidth, mapHeight);
     }
 
 
