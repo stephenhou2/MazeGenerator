@@ -35,6 +35,8 @@ public class MapGenerator:MonoBehaviour
 
     public void RefreshMapView()
     {
+        mv.Reset(WorkSpaceWidth, WorkSpaceHeight);
+
         List<Room> allRooms = md.GetAllRoomData();
 
         foreach(Room room in allRooms)
@@ -46,9 +48,13 @@ public class MapGenerator:MonoBehaviour
         {
             for(int j=0;j<WorkSpaceHeight;j++)
             {
-                if(md.CheckIsWall(i,j))
+                if(md.GetCellType(i,j) == MapDef.CELL_TYPE_WALL)
                 {
                     mv.AddWallView(new Vector2Int(i,j));
+                }
+                else if(md.GetCellType(i,j) == MapDef.CELL_TYPE_SOLID_WALL)
+                {
+                    mv.AddSolidWallView(new Vector2Int(i, j));
                 }
             }
         }
@@ -72,9 +78,14 @@ public class MapGenerator:MonoBehaviour
         md.GenerateMapRooms(RoomMinSize_Half, RoomMaxSize_Half, RoomMaxTry);
     }
 
-    public void GenerateMapMaze()
+    public void FloodFillMazeSingleStep()
     {
-        md.FloodFillMaze();
+        md.FloodFillMazeSingleStep();
+    }   
+    
+    public void GenerateMaze()
+    {
+        
     }
 
     public void CarveConnection()
@@ -92,7 +103,7 @@ public class MapGenerator:MonoBehaviour
         GenerateMapRooms();
 
         // 4.填充迷宫走廊
-        GenerateMapMaze();
+        GenerateMaze();
 
         // 5.连接处挖洞
         CarveConnection();

@@ -4,49 +4,49 @@ using UnityEngine;
 
 public static class MapDef
 {
+    public const int CELL_TYPE_INVALID = -1;
     public const int CELL_TYPE_FLOOR = 0;
     public const int CELL_TYPE_ROOM = 1;
     public const int CELL_TYPE_WALL = 2;
-    public const int CELL_TYPE_CORRIDOR = 3;
+    public const int CELL_TYPE_SOLID_WALL = 3;
 
+    public static Vector2Int UP = new Vector2Int(0, 1);
+    public static Vector2Int DOWN = new Vector2Int(0, -1);
+    public static Vector2Int LEFT = new Vector2Int(-1, 0);
+    public static Vector2Int RIGHT = new Vector2Int(1, 0);
 
-    public const int DIRECTION_UP = 0;
-    public const int DIRECTION_DOWN = 1;
-    public const int DIRECTION_LEFT = 2;
-    public const int DIRECTION_RIGHT = 3;
-
-    private static int[] _neighbors_1 = new int[]
+    private static Vector2Int[] _neighbors_1 = new Vector2Int[]
     {
-            DIRECTION_UP,
-            DIRECTION_DOWN,
-            DIRECTION_LEFT,
-            DIRECTION_RIGHT,
+            UP,
+            DOWN,
+            LEFT,
+            RIGHT,
     };
 
-    private static int[] _neighbors_2 = new int[]
+    private static Vector2Int[] _neighbors_2 = new Vector2Int[]
     {
-            DIRECTION_DOWN,
-            DIRECTION_LEFT,
-            DIRECTION_RIGHT,
-            DIRECTION_UP,
+            DOWN,
+            LEFT,
+            RIGHT,
+            UP,
     };
 
-    private static int[] _neighbors_3 = new int[]
+    private static Vector2Int[] _neighbors_3 = new Vector2Int[]
     {
-            DIRECTION_LEFT,
-            DIRECTION_RIGHT,
-            DIRECTION_UP,
-            DIRECTION_DOWN,
+            LEFT,
+            RIGHT,
+            UP,
+            DOWN,
     };
-    private static int[] _neighbors_4 = new int[]
+    private static Vector2Int[] _neighbors_4 = new Vector2Int[]
     {
-            DIRECTION_RIGHT,
-            DIRECTION_UP,
-            DIRECTION_DOWN,
-            DIRECTION_LEFT,
+            RIGHT,
+            UP,
+            DOWN,
+            LEFT,
     };
 
-    public static List<int[]> NEIGHBORS_POOL = new List<int[]>
+    public static List<Vector2Int[]> NEIGHBORS_POOL = new List<Vector2Int[]>
     {
         _neighbors_1,
         _neighbors_2,
@@ -54,24 +54,15 @@ public static class MapDef
         _neighbors_4
     };
 
-    public static Vector2Int UP = new Vector2Int(0, 1);
-    public static Vector2Int DOWN = new Vector2Int(0, -1);
-    public static Vector2Int LEFT = new Vector2Int(-1, 0);
-    public static Vector2Int RIGHT = new Vector2Int(1, 0);
-
-    public static Vector2Int[] NEIGHBORS_MAP = new Vector2Int[]
+    public static Vector2Int[] FULL_NEIGHBORS = new Vector2Int[]
     {
-        UP, //up
-        DOWN , //down
-        LEFT, //left
-        RIGHT, //right
-    };
-
-    public static Vector2Int[] OFFSET_MAP = new Vector2Int[]
-    {
-        UP, //up
-        DOWN , //down
-        LEFT, //left
-        RIGHT, //right
-    };
+            new Vector2Int(-1, 0),
+            new Vector2Int(-1, 1),
+            new Vector2Int(0, 1),
+            new Vector2Int(1, 1),
+            new Vector2Int(1, 0),
+            new Vector2Int(1, -1),
+            new Vector2Int(0, -1),
+            new Vector2Int(-1, -1),
+};
 }

@@ -8,6 +8,7 @@ public class MapView : MonoBehaviour
     public GameObject WallNode;
     public Material roomMat;
     public Material wallMat;
+    public Material solidWallMat;
 
     private int WorkSpaceWidth;
     private int WorkSpaceHeight;
@@ -35,6 +36,20 @@ public class MapView : MonoBehaviour
         quad.transform.rotation = Quaternion.identity;
         quad.name = "_WALL_";
         quad.GetComponent<MeshRenderer>().material = wallMat;
+        //quad.hideFlags = HideFlags.HideInHierarchy;
+    }
+
+
+    public void AddSolidWallView(Vector2Int pos)
+    {
+        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.transform.parent = WallNode.transform;
+
+        quad.transform.position = new Vector3(pos.x, pos.y, 0);
+        quad.transform.localScale = Vector3.one;
+        quad.transform.rotation = Quaternion.identity;
+        quad.name = "_SOLID_WALL_";
+        quad.GetComponent<MeshRenderer>().material = solidWallMat;
         //quad.hideFlags = HideFlags.HideInHierarchy;
     }
 

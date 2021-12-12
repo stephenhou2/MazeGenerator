@@ -86,7 +86,7 @@ public class MapEditor : EditorWindow
 
         if (GUILayout.Button("填充迷宫"))
         {
-            mapGen.GenerateMapMaze();
+            mapGen.FloodFillMazeSingleStep();
             mapGen.RefreshMapView();
         }
     }

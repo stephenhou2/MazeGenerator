@@ -55,21 +55,16 @@ public class MapData
             }
         }
 
+        // 房间外围初始化为实体墙
         for (int i = room.Left-1; i <= room.Right+1; i++)
         {
-            _mapCellType[i,room.Bottom-1] = MapDef.CELL_TYPE_WALL;
+            _mapCellType[i, room.Top+1] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_SOLID_WALL;
         }
-        for (int i = room.Left - 1; i <= room.Right + 1; i++)
+        for (int i = room.Bottom-1; i <= room.Top+1; i++)
         {
-            _mapCellType[i,room.Top+1] = MapDef.CELL_TYPE_WALL;
-        }
-        for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
-        {
-            _mapCellType[room.Left-1, i] = MapDef.CELL_TYPE_WALL;
-        }
-        for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
-        {
-            _mapCellType[room.Right+1, i] = MapDef.CELL_TYPE_WALL;
+            _mapCellType[room.Left-1,i] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[room.Right+1,i] = MapDef.CELL_TYPE_SOLID_WALL;
         }
     }
 
@@ -86,109 +81,21 @@ public class MapData
 
     private Queue<Vector2Int> _toHandle = new Queue<Vector2Int>();
 
-    public bool CheckIsWall (int x,int y)
+    public int GetCellType (int x,int y)
     {
         // 超出工作区域
-        if (x < 0 || x >= _workSpaceWidth) return false;
-        if (y < 0 || y >= _workSpaceHeight) return false;
+        if (x < 0 || x >= _workSpaceWidth) return MapDef.CELL_TYPE_INVALID;
+        if (y < 0 || y >= _workSpaceHeight) return MapDef.CELL_TYPE_INVALID;
 
-        if (_mapCellType == null) return false;
+        if (_mapCellType == null) return MapDef.CELL_TYPE_INVALID;
 
-        return _mapCellType[x, y] == MapDef.CELL_TYPE_WALL;
+        return _mapCellType[x, y];
     }
 
-    private int[] RandomNeighbors()
+    private Vector2Int[] RandomNeighbors()
     {
         int seed = Random.Range(0, 4);
         return MapDef.NEIGHBORS_POOL[seed];
-    }
-
-    private void TryChangeToWall(Vector2Int pos)
-    {
-        if(_mapCellType[pos.x,pos.y] == MapDef.CELL_TYPE_FLOOR)
-        {
-            _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_WALL;
-        }
-    }
-
-    private bool TryAddCorridor(Vector2Int from,int direction)
-    {
-        Vector2Int offset = MapDef.OFFSET_MAP[direction];
-        Vector2Int newPos1 = from + offset;
-        Vector2Int newPos2 = from + 2 * offset;
-        if(_mapCellType[newPos1.x, newPos1.y] == MapDef.CELL_TYPE_FLOOR
-             && _mapCellType[newPos2.x, newPos2.y] == MapDef.CELL_TYPE_FLOOR)
-        {
-            _mapCellType[newPos1.x, newPos1.y] = MapDef.CELL_TYPE_CORRIDOR;
-            _mapCellType[newPos2.x, newPos2.y] = MapDef.CELL_TYPE_CORRIDOR;
-
-            switch(direction)
-            {
-                case MapDef.DIRECTION_UP:
-                case MapDef.DIRECTION_DOWN:
-                    TryChangeToWall(from + MapDef.LEFT);
-                    TryChangeToWall(from + MapDef.RIGHT);
-                    TryChangeToWall(newPos1 + MapDef.LEFT);
-                    TryChangeToWall(newPos1 + MapDef.RIGHT);
-                    break;
-                case MapDef.DIRECTION_LEFT:
-                case MapDef.DIRECTION_RIGHT:
-                    TryChangeToWall(from + MapDef.UP);
-                    TryChangeToWall(from + MapDef.DOWN);
-                    TryChangeToWall(newPos1 + MapDef.UP);
-                    TryChangeToWall(newPos1 + MapDef.DOWN);
-                    break;
-                default:
-                    break;
-            }
-            return true;
-        }
-        return false;
-    }
-
-
-    /// <summary>
-    /// 洪水填充算法生成迷宫走廊
-    /// </summary>
-    /// <param name="start">算法起点</param>
-    private void FillMaze(Vector2Int start)
-    {
-        _toHandle.Clear();
-        _toHandle.Enqueue(start);
-        _mapCellType[start.x, start.y] = MapDef.CELL_TYPE_CORRIDOR;
-
-        while (_toHandle.Count > 0)
-        {
-            Vector2Int pos = _toHandle.Dequeue();
-            int[] neighbors = RandomNeighbors();
-            for(int i=0;i< neighbors.Length;i++)
-            {
-                int direction = neighbors[i];
-                if (TryAddCorridor(pos, direction))
-                {
-                    _toHandle.Enqueue(pos+ 2*MapDef.OFFSET_MAP[direction]);
-                    break;
-                }
-            }
-        }
-    }
-
-    public void FloodFillMaze()
-    {
-        if(_toHandle.Count > 0)
-        {
-            Vector2Int pos = _toHandle.Dequeue();
-            int[] neighbors = RandomNeighbors();
-            for (int i = 0; i < neighbors.Length; i++)
-            {
-                int direction = neighbors[i];
-                if (TryAddCorridor(pos, direction))
-                {
-                    _toHandle.Enqueue(pos + 2 * MapDef.OFFSET_MAP[direction]);
-                    break;
-                }
-            }
-        }
     }
 
     private void FindMazeStart()
@@ -199,8 +106,36 @@ public class MapData
             {
                 if (_mapCellType[i, j] == MapDef.CELL_TYPE_WALL)
                 {
+                    for(int m = 0;m<MapDef.FULL_NEIGHBORS.Length;m++)
+                    {
+                        int type = GetCellType(i + MapDef.FULL_NEIGHBORS[m].x, j + MapDef.FULL_NEIGHBORS[m].y);
+                        if (type != MapDef.CELL_TYPE_WALL && type != MapDef.CELL_TYPE_SOLID_WALL)
+                            return;
+                    }
                     _toHandle.Enqueue(new Vector2Int(i, j));
+                    return;
                 }
+            }
+        }
+    }
+
+    private void GenerateMaze()
+    {
+        if (_toHandle.Count == 0) return;
+
+        Vector2Int cur = _toHandle.Dequeue();
+        _mapCellType[cur.x, cur.y] = MapDef.CELL_TYPE_FLOOR;
+        Vector2Int[] neighbors = RandomNeighbors();
+        for (int i = 0; i < neighbors.Length; i++)
+        {
+            Vector2Int pos = cur + neighbors[i];
+            Vector2Int pos2 = cur + 2 * neighbors[i];
+            if (GetCellType(pos.x, pos.y) == MapDef.CELL_TYPE_WALL 
+                && GetCellType(pos2.x, pos2.y) == MapDef.CELL_TYPE_WALL)
+            {
+                _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_FLOOR;
+                _toHandle.Enqueue(pos2);
+                GenerateMaze();
             }
         }
     }
@@ -212,12 +147,13 @@ public class MapData
             FindMazeStart();
         }
 
-        if (_toHandle.Count == 0) return;
-
-        for(int i =0;i<MapDef.NEIGHBORS_MAP.Length;i++)
+        if (_toHandle.Count == 0)
         {
-
+            Debug.Log("已经无法继续生成迷宫");
+            return;
         }
+
+        GenerateMaze();
     }
 
     /// <summary>
@@ -257,6 +193,19 @@ public class MapData
             {
                 _mapCellType[i, j] = MapDef.CELL_TYPE_WALL;
             }
+        }
+
+        // 最外围初始化为实体墙
+        for(int i = 0;i<mapWidth;i++)
+        {
+            _mapCellType[i, 0] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[i, _workSpaceHeight-1] = MapDef.CELL_TYPE_SOLID_WALL;
+        }
+
+        for(int i = 0;i<mapHeight;i++)
+        {
+            _mapCellType[0, i] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[_workSpaceWidth-1, i] = MapDef.CELL_TYPE_SOLID_WALL;
         }
     }
 
