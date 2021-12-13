@@ -6,9 +6,12 @@ public class MapView : MonoBehaviour
 {
     public GameObject RoomNode;
     public GameObject WallNode;
+    public GameObject DoorNode;
+
     public Material roomMat;
     public Material wallMat;
     public Material solidWallMat;
+    public Material doorMat;
 
     private int WorkSpaceWidth;
     private int WorkSpaceHeight;
@@ -53,6 +56,19 @@ public class MapView : MonoBehaviour
         //quad.hideFlags = HideFlags.HideInHierarchy;
     }
 
+    public void AddDoorView(Vector2Int pos)
+    {
+        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.transform.parent = DoorNode.transform;
+
+        quad.transform.position = new Vector3(pos.x, pos.y, 0);
+        quad.transform.localScale = Vector3.one;
+        quad.transform.rotation = Quaternion.identity;
+        quad.name = "_DOOR_";
+        quad.GetComponent<MeshRenderer>().material = doorMat;
+        //quad.hideFlags = HideFlags.HideInHierarchy;
+    }
+
     private void InitializeMapView(int mapWidth,int mapHeight)
     {
         WorkSpaceWidth = mapWidth;
@@ -69,6 +85,11 @@ public class MapView : MonoBehaviour
         for (int i = WallNode.transform.childCount - 1; i >= 0; i--)
         {
             DestroyImmediate(WallNode.transform.GetChild(i).gameObject);
+        }   
+        
+        for (int i = DoorNode.transform.childCount - 1; i >= 0; i--)
+        {
+            DestroyImmediate(DoorNode.transform.GetChild(i).gameObject);
         }
 
         InitializeMapView(mapWidth, mapHeight);

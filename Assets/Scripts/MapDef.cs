@@ -9,11 +9,14 @@ public static class MapDef
     public const int CELL_TYPE_ROOM = 1;
     public const int CELL_TYPE_WALL = 2;
     public const int CELL_TYPE_SOLID_WALL = 3;
+    public const int CELL_TYPE_DOOR = 4;
 
     public static Vector2Int UP = new Vector2Int(0, 1);
     public static Vector2Int DOWN = new Vector2Int(0, -1);
     public static Vector2Int LEFT = new Vector2Int(-1, 0);
     public static Vector2Int RIGHT = new Vector2Int(1, 0);
+
+    public static float DOOR_CHANCE = 0.3f;
 
     private static Vector2Int[] _neighbors_1 = new Vector2Int[]
     {

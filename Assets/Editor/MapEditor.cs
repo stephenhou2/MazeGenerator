@@ -72,9 +72,15 @@ public class MapEditor : EditorWindow
             mapGen.RefreshMapView();
         }
 
-        if (GUILayout.Button("生成完整地图"))
+        if(GUILayout.Button("全部填充为墙壁"))
         {
-            mapGen.GenerateWholeMap();
+            mapGen.FullMapToWall();
+            mapGen.RefreshMapView();
+        }
+
+        if(GUILayout.Button("地图边界填充为实体墙壁"))
+        {
+            mapGen.MapBorderToWall();
             mapGen.RefreshMapView();
         }
 
@@ -84,9 +90,28 @@ public class MapEditor : EditorWindow
             mapGen.RefreshMapView();
         }
 
+        if(GUILayout.Button("房间周围填充为实体墙壁"))
+        {
+            mapGen.RoomBorderToWall();
+            mapGen.RefreshMapView();
+        }
+
         if (GUILayout.Button("填充迷宫"))
         {
             mapGen.FloodFillMazeSingleStep();
+            mapGen.RefreshMapView();
+        }
+
+        if (GUILayout.Button("生成门"))
+        {
+            mapGen.GenerateDoors();
+            mapGen.RefreshMapView();
+        }
+
+
+        if (GUILayout.Button("生成完整地图"))
+        {
+            mapGen.GenerateWholeMap();
             mapGen.RefreshMapView();
         }
     }

@@ -54,18 +54,6 @@ public class MapData
                 _mapCellType[i, j] = MapDef.CELL_TYPE_ROOM;
             }
         }
-
-        // 房间外围初始化为实体墙
-        for (int i = room.Left-1; i <= room.Right+1; i++)
-        {
-            _mapCellType[i, room.Top+1] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_SOLID_WALL;
-        }
-        for (int i = room.Bottom-1; i <= room.Top+1; i++)
-        {
-            _mapCellType[room.Left-1,i] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[room.Right+1,i] = MapDef.CELL_TYPE_SOLID_WALL;
-        }
     }
 
     public bool TryAddRoom(Vector2Int pos, int halfWidth, int halfHeight)
@@ -98,25 +86,36 @@ public class MapData
         return MapDef.NEIGHBORS_POOL[seed];
     }
 
-    private void FindMazeStart()
+    private bool IsValidStart(Vector2Int pos)
+    {
+        if (_mapCellType[pos.x, pos.y] != MapDef.CELL_TYPE_WALL) return false;
+        for (int m = 0; m < MapDef.FULL_NEIGHBORS.Length; m++)
+        {
+            int type = GetCellType(pos.x + MapDef.FULL_NEIGHBORS[m].x, pos.y + MapDef.FULL_NEIGHBORS[m].y);
+            if (type != MapDef.CELL_TYPE_WALL && type != MapDef.CELL_TYPE_SOLID_WALL)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool FindMazeStart()
     {
         for (int i = 0; i < _workSpaceWidth; i++)
         {
             for (int j = 0; j < _workSpaceHeight; j++)
             {
-                if (_mapCellType[i, j] == MapDef.CELL_TYPE_WALL)
+                if(IsValidStart(new Vector2Int(i,j)))
                 {
-                    for(int m = 0;m<MapDef.FULL_NEIGHBORS.Length;m++)
-                    {
-                        int type = GetCellType(i + MapDef.FULL_NEIGHBORS[m].x, j + MapDef.FULL_NEIGHBORS[m].y);
-                        if (type != MapDef.CELL_TYPE_WALL && type != MapDef.CELL_TYPE_SOLID_WALL)
-                            return;
-                    }
                     _toHandle.Enqueue(new Vector2Int(i, j));
-                    return;
+                    return true;
                 }
             }
         }
+
+        return false;
     }
 
     private void GenerateMaze()
@@ -142,11 +141,6 @@ public class MapData
 
     public void FloodFillMazeSingleStep()
     {
-        if(_toHandle.Count == 0)
-        {
-            FindMazeStart();
-        }
-
         if (_toHandle.Count == 0)
         {
             Debug.Log("已经无法继续生成迷宫");
@@ -185,27 +179,119 @@ public class MapData
         _workSpaceWidth = mapWidth;
         _workSpaceHeight = mapHeight;
         _mapCellType = new int[mapWidth, mapHeight];
+    }
 
+    public void FullMapToWall()
+    {
         // 先全部初始化为墙
-        for (int i = 0; i < mapWidth; i++)
+        for (int i = 0; i < _workSpaceWidth; i++)
         {
-            for (int j = 0; j < mapHeight; j++)
+            for (int j = 0; j < _workSpaceHeight; j++)
             {
                 _mapCellType[i, j] = MapDef.CELL_TYPE_WALL;
             }
         }
+    }
 
+    public void MapBorderToWall()
+    {
         // 最外围初始化为实体墙
-        for(int i = 0;i<mapWidth;i++)
+        for (int i = 0; i < _workSpaceWidth; i++)
         {
             _mapCellType[i, 0] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[i, _workSpaceHeight-1] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[i, _workSpaceHeight - 1] = MapDef.CELL_TYPE_SOLID_WALL;
         }
 
-        for(int i = 0;i<mapHeight;i++)
+        for (int i = 0; i < _workSpaceHeight; i++)
         {
             _mapCellType[0, i] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[_workSpaceWidth-1, i] = MapDef.CELL_TYPE_SOLID_WALL;
+            _mapCellType[_workSpaceWidth - 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
+        }
+    }
+
+    public void RoomBorderToWall()
+    {
+        foreach(Room room in _allRooms)
+        {
+            // 房间外围初始化为实体墙
+            for (int i = room.Left - 1; i <= room.Right + 1; i++)
+            {
+                _mapCellType[i, room.Top + 1] = MapDef.CELL_TYPE_SOLID_WALL;
+                _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_SOLID_WALL;
+            }
+            for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
+            {
+                _mapCellType[room.Left - 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
+                _mapCellType[room.Right + 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
+            }
+        }
+    }
+
+    private bool Rool(float chance)
+    {
+        float v = Random.Range(0, 1);
+        return v < chance;
+    }
+
+    private bool CheckCanChangeToDoor(int x,int y)
+    {
+        int curCellType = GetCellType(x, y);
+        int upCellType = GetCellType(x, y+1);
+        int downCellType = GetCellType(x, y-1);
+        int leftCellType = GetCellType(x-1, y);
+        int rightCellType = GetCellType(x+1, y);
+
+        if (curCellType != MapDef.CELL_TYPE_WALL && curCellType != MapDef.CELL_TYPE_SOLID_WALL)
+            return false;
+
+        if (upCellType != MapDef.CELL_TYPE_WALL && upCellType != MapDef.CELL_TYPE_SOLID_WALL
+             && downCellType != MapDef.CELL_TYPE_WALL && downCellType != MapDef.CELL_TYPE_SOLID_WALL)
+            return Rool(MapDef.DOOR_CHANCE); ;
+        
+        if (leftCellType != MapDef.CELL_TYPE_WALL && leftCellType != MapDef.CELL_TYPE_SOLID_WALL
+             && rightCellType != MapDef.CELL_TYPE_WALL && rightCellType != MapDef.CELL_TYPE_SOLID_WALL)
+            return Rool(MapDef.DOOR_CHANCE); ;
+
+        return false;
+    }
+
+    private void GenerateRoomDoor(Room room)
+    {
+        // 房间外围初始化为实体墙
+        for (int i = room.Left - 1; i <= room.Right + 1; i++)
+        {
+            if (CheckCanChangeToDoor(i, room.Top + 1))
+            {
+                _mapCellType[i, room.Top + 1] = MapDef.CELL_TYPE_DOOR;
+                return;
+            }
+            if (CheckCanChangeToDoor(i, room.Bottom - 1))
+            {
+                _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_DOOR;
+                return;
+            }
+        }
+        for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
+        {
+            if (CheckCanChangeToDoor(room.Left - 1, i))
+            {
+                _mapCellType[room.Left - 1, i] = MapDef.CELL_TYPE_DOOR;
+                return;
+            }
+            if (CheckCanChangeToDoor(room.Right + 1, i))
+            {
+                _mapCellType[room.Right + 1, i] = MapDef.CELL_TYPE_DOOR;
+                return;
+            }
+        }
+    }
+
+    public void GenerateDoors()
+    {
+        // 生成门
+        foreach(Room room in _allRooms)
+        {
+            GenerateRoomDoor(room);
         }
     }
 
