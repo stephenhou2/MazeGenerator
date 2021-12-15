@@ -37,6 +37,11 @@ public class MapData
             {
                 return false;
             }
+
+            if(Mathf.Abs(room.Pos.x-pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
+            {
+                return false;
+            }
         }
         return true;
     }
@@ -149,6 +154,46 @@ public class MapData
 
         GenerateMaze();
     }
+
+    private void ChangeToWallToCorridor(Vector2Int pos,int direction)
+    {
+
+    }
+
+    private bool CheckCanChangeToCorridor(Vector2Int pos,int direction)
+    {
+        return true;
+    }
+
+    public void GenerateMaze(Vector2Int pos)
+    {
+        for (int i = 0; i < MapDef.DIRECTION_MAP.Length; i++)
+        {
+            int dir = MapDef.DIRECTION_MAP[i];
+            if (CheckCanChangeToCorridor(pos,dir))
+            {
+                ChangeToWallToCorridor(pos, dir);
+            }
+        }
+    }
+
+    public void GenerateFullMaze()
+    {
+        for (int i = 1; i < _workSpaceWidth; i++)
+        {
+            for (int j = 1; j < _workSpaceHeight; j++)
+            {
+                if (_mapCellType[i, j] != MapDef.CELL_TYPE_WALL)
+                {
+                    continue;
+                }
+
+                GenerateMaze(new Vector2Int(i, j));
+            }
+        }
+    }
+
+
 
     /// <summary>
     /// 创建地牢房间
