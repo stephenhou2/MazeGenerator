@@ -108,10 +108,12 @@ public class MapGenerator:MonoBehaviour
 
     public void FloodFillMazeSingleStep()
     {
-        if(md.FindMazeStart())
-        {
-            md.FloodFillMazeSingleStep();
-        }
+        //if(md.FindMazeStart())
+        //{
+        //    md.FloodFillMazeSingleStep();
+        //}
+
+        md.GenerateFullMaze();
     }   
     
     public void GenerateFullMaze()

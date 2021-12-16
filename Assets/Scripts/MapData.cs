@@ -8,6 +8,8 @@ public class MapData
     private int _workSpaceWidth;
     private int _workSpaceHeight;
 
+    private Rect _workRect;
+
     private List<Room> _allRooms = new List<Room>();
 
     public int[,] GetMapCellData()
@@ -38,7 +40,7 @@ public class MapData
                 return false;
             }
 
-            if(Mathf.Abs(room.Pos.x-pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
+            if (Mathf.Abs(room.Pos.x - pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
             {
                 return false;
             }
@@ -63,6 +65,8 @@ public class MapData
 
     public bool TryAddRoom(Vector2Int pos, int halfWidth, int halfHeight)
     {
+        if (pos.x % 2 == 1 || pos.y % 2 == 1) return false;
+
         if(CheckRoomCanCreate(pos, halfWidth, halfHeight))
         {
             AddNewRoom(pos, halfWidth, halfHeight);
@@ -72,7 +76,12 @@ public class MapData
         return false;
     }
 
-    private Queue<Vector2Int> _toHandle = new Queue<Vector2Int>();
+    private SimpleStack<Vector2Int> _toHandle = new SimpleStack<Vector2Int>();
+
+    public int GetCellType(Vector2Int pos)
+    {
+        return GetCellType(pos.x, pos.y);
+    }
 
     public int GetCellType (int x,int y)
     {
@@ -114,12 +123,11 @@ public class MapData
             {
                 if(IsValidStart(new Vector2Int(i,j)))
                 {
-                    _toHandle.Enqueue(new Vector2Int(i, j));
+                    _toHandle.Push(new Vector2Int(i, j));
                     return true;
                 }
             }
         }
-
         return false;
     }
 
@@ -127,7 +135,7 @@ public class MapData
     {
         if (_toHandle.Count == 0) return;
 
-        Vector2Int cur = _toHandle.Dequeue();
+        Vector2Int cur = _toHandle.Pop();
         _mapCellType[cur.x, cur.y] = MapDef.CELL_TYPE_FLOOR;
         Vector2Int[] neighbors = RandomNeighbors();
         for (int i = 0; i < neighbors.Length; i++)
@@ -138,7 +146,7 @@ public class MapData
                 && GetCellType(pos2.x, pos2.y) == MapDef.CELL_TYPE_WALL)
             {
                 _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_FLOOR;
-                _toHandle.Enqueue(pos2);
+                _toHandle.Push(pos2);
                 GenerateMaze();
             }
         }
@@ -155,39 +163,76 @@ public class MapData
         GenerateMaze();
     }
 
-    private void ChangeToWallToCorridor(Vector2Int pos,int direction)
+    private void ChangeWallToCorridor(Vector2Int pos)
     {
-
+        _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_FLOOR;
     }
 
-    private bool CheckCanChangeToCorridor(Vector2Int pos,int direction)
+    private bool CanCarve(Vector2Int pos,Vector2Int offset)
     {
-        return true;
+        if (!_workRect.Contains(pos + 3 * offset)) return false;
+
+        return GetCellType(pos+2*offset) == MapDef.CELL_TYPE_WALL;
     }
+
 
     public void GenerateMaze(Vector2Int pos)
     {
-        for (int i = 0; i < MapDef.DIRECTION_MAP.Length; i++)
+        ChangeWallToCorridor(pos);
+
+        SimpleStack<Vector2Int> _toHandleQueue = new SimpleStack<Vector2Int>();
+        Vector2Int _lastDir = MapDef.UP;
+        _toHandleQueue.Push(pos);
+
+        while(_toHandleQueue.Count > 0)
         {
-            int dir = MapDef.DIRECTION_MAP[i];
-            if (CheckCanChangeToCorridor(pos,dir))
+            Vector2Int current = _toHandleQueue.GetLast();
+            Vector2Int targetDir = MapDef.UP;
+
+            List<Vector2Int> _allDirs = new List<Vector2Int>();
+            for (int i = 0; i < MapDef._neighbors_1.Length; i++)
             {
-                ChangeToWallToCorridor(pos, dir);
+                Vector2Int dir = MapDef._neighbors_1[i];
+                if (CanCarve(current, dir))
+                {
+                    _allDirs.Add(dir);
+                }
+            }
+
+            if(_allDirs.Count > 0)
+            {
+                if (_allDirs.Contains(_lastDir) && Rool(0.5f))
+                {
+                    targetDir = _lastDir;
+                }
+                else
+                {
+                    targetDir = _allDirs[Random.Range(0, _allDirs.Count)];
+                }
+
+                ChangeWallToCorridor(current + targetDir);
+                ChangeWallToCorridor(current + 2 * targetDir);
+
+                _toHandleQueue.Push(current + 2 * targetDir);
+                _lastDir = targetDir;
+            }
+            else
+            {
+                _toHandleQueue.Pop();
             }
         }
     }
 
     public void GenerateFullMaze()
     {
-        for (int i = 1; i < _workSpaceWidth; i++)
+        for (int i = 1; i < _workSpaceWidth; i += 2)
         {
-            for (int j = 1; j < _workSpaceHeight; j++)
+            for (int j = 1; j < _workSpaceHeight; j += 2)
             {
                 if (_mapCellType[i, j] != MapDef.CELL_TYPE_WALL)
                 {
                     continue;
                 }
-
                 GenerateMaze(new Vector2Int(i, j));
             }
         }
@@ -214,6 +259,7 @@ public class MapData
             int randomPosY = Random.Range(1 + height_half + 1, _workSpaceHeight - 1 - height_half - 1);
 
             Vector2Int pos = new Vector2Int(randomPosX, randomPosY);
+
             TryAddRoom(pos, width_half, height_half);
             cnt++;
         }
@@ -274,7 +320,7 @@ public class MapData
 
     private bool Rool(float chance)
     {
-        float v = Random.Range(0, 1);
+        float v = Random.Range(0, 1f);
         return v < chance;
     }
 
@@ -344,6 +390,7 @@ public class MapData
     {
         _workSpaceWidth = mapWidth;
         _workSpaceHeight = mapHeight;
+        _workRect = new Rect(0, 0, mapWidth, mapHeight);
         _allRooms.Clear();
 
         InitializeMapData(mapWidth, mapHeight);

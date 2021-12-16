@@ -113,13 +113,13 @@ public class MapView : MonoBehaviour
         {
             Gizmos.color = Color.grey;
 
-            for (int i = 1; i < WorkSpaceHeight-1; i++)
+            for (int i = 1; i < WorkSpaceHeight; i++)
             {
-                Gizmos.DrawLine(new Vector3(0, i, 0), new Vector3(WorkSpaceWidth, i, 0));
+                Gizmos.DrawLine(new Vector3(-0.5f, i-0.5f, 0), new Vector3(WorkSpaceWidth-0.5f, i - 0.5f, 0));
             }
-            for (int i = 1; i < WorkSpaceWidth-1; i++)
+            for (int i = 1; i < WorkSpaceWidth; i++)
             {
-                Gizmos.DrawLine(new Vector3(i, 0, 0), new Vector3(i, WorkSpaceHeight, 0));
+                Gizmos.DrawLine(new Vector3(i - 0.5f, -0.5f, 0), new Vector3(i - 0.5f, WorkSpaceHeight - 0.5f, 0));
             }
         }
     }
