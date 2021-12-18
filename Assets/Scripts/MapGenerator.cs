@@ -127,6 +127,11 @@ public class MapGenerator:MonoBehaviour
     public void GenerateDoors()
     {
         md.GenerateDoors();
+    } 
+    
+    public void CarveDeadEnds()
+    {
+        md.CarveDeadEnds();
     }
 
     public void GenerateWholeMap()

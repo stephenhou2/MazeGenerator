@@ -35,7 +35,7 @@ public class MapData
         foreach (Room room in _allRooms)
         {
             if (Mathf.Abs(room.Pos.x - pos.x) < room.Width_Half + halfWidth + 2
-                && Mathf.Abs(room.Pos.y - pos.y)  < room.Height_Half  + halfHeight + 2)
+                && Mathf.Abs(room.Pos.y - pos.y) < room.Height_Half + halfHeight + 2)
             {
                 return false;
             }
@@ -54,7 +54,7 @@ public class MapData
         _allRooms.Add(room);
 
         // 房间所在的所有格子，设置为房间
-        for(int i = room.Left;i<=room.Right;i++)
+        for (int i = room.Left; i <= room.Right; i++)
         {
             for (int j = room.Bottom; j <= room.Top; j++)
             {
@@ -65,9 +65,7 @@ public class MapData
 
     public bool TryAddRoom(Vector2Int pos, int halfWidth, int halfHeight)
     {
-        if (pos.x % 2 == 1 || pos.y % 2 == 1) return false;
-
-        if(CheckRoomCanCreate(pos, halfWidth, halfHeight))
+        if (CheckRoomCanCreate(pos, halfWidth, halfHeight))
         {
             AddNewRoom(pos, halfWidth, halfHeight);
             return true;
@@ -83,7 +81,7 @@ public class MapData
         return GetCellType(pos.x, pos.y);
     }
 
-    public int GetCellType (int x,int y)
+    public int GetCellType(int x, int y)
     {
         // 超出工作区域
         if (x < 0 || x >= _workSpaceWidth) return MapDef.CELL_TYPE_INVALID;
@@ -121,7 +119,7 @@ public class MapData
         {
             for (int j = 0; j < _workSpaceHeight; j++)
             {
-                if(IsValidStart(new Vector2Int(i,j)))
+                if (IsValidStart(new Vector2Int(i, j)))
                 {
                     _toHandle.Push(new Vector2Int(i, j));
                     return true;
@@ -142,7 +140,7 @@ public class MapData
         {
             Vector2Int pos = cur + neighbors[i];
             Vector2Int pos2 = cur + 2 * neighbors[i];
-            if (GetCellType(pos.x, pos.y) == MapDef.CELL_TYPE_WALL 
+            if (GetCellType(pos.x, pos.y) == MapDef.CELL_TYPE_WALL
                 && GetCellType(pos2.x, pos2.y) == MapDef.CELL_TYPE_WALL)
             {
                 _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_FLOOR;
@@ -168,11 +166,11 @@ public class MapData
         _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_FLOOR;
     }
 
-    private bool CanCarve(Vector2Int pos,Vector2Int offset)
+    private bool CanCarve(Vector2Int pos, Vector2Int offset)
     {
         if (!_workRect.Contains(pos + 3 * offset)) return false;
 
-        return GetCellType(pos+2*offset) == MapDef.CELL_TYPE_WALL;
+        return GetCellType(pos + 2 * offset) == MapDef.CELL_TYPE_WALL;
     }
 
 
@@ -184,7 +182,7 @@ public class MapData
         Vector2Int _lastDir = MapDef.UP;
         _toHandleQueue.Push(pos);
 
-        while(_toHandleQueue.Count > 0)
+        while (_toHandleQueue.Count > 0)
         {
             Vector2Int current = _toHandleQueue.GetLast();
             Vector2Int targetDir = MapDef.UP;
@@ -199,7 +197,7 @@ public class MapData
                 }
             }
 
-            if(_allDirs.Count > 0)
+            if (_allDirs.Count > 0)
             {
                 if (_allDirs.Contains(_lastDir) && Rool(0.5f))
                 {
@@ -265,7 +263,7 @@ public class MapData
         }
     }
 
-    private void InitializeMapData(int mapWidth,int mapHeight)
+    private void InitializeMapData(int mapWidth, int mapHeight)
     {
         _workSpaceWidth = mapWidth;
         _workSpaceHeight = mapHeight;
@@ -302,7 +300,7 @@ public class MapData
 
     public void RoomBorderToWall()
     {
-        foreach(Room room in _allRooms)
+        foreach (Room room in _allRooms)
         {
             // 房间外围初始化为实体墙
             for (int i = room.Left - 1; i <= room.Right + 1; i++)
@@ -324,13 +322,13 @@ public class MapData
         return v < chance;
     }
 
-    private bool CheckCanChangeToDoor(int x,int y)
+    private bool CheckCanChangeToDoor(int x, int y)
     {
         int curCellType = GetCellType(x, y);
-        int upCellType = GetCellType(x, y+1);
-        int downCellType = GetCellType(x, y-1);
-        int leftCellType = GetCellType(x-1, y);
-        int rightCellType = GetCellType(x+1, y);
+        int upCellType = GetCellType(x, y + 1);
+        int downCellType = GetCellType(x, y - 1);
+        int leftCellType = GetCellType(x - 1, y);
+        int rightCellType = GetCellType(x + 1, y);
 
         if (curCellType != MapDef.CELL_TYPE_WALL && curCellType != MapDef.CELL_TYPE_SOLID_WALL)
             return false;
@@ -338,7 +336,7 @@ public class MapData
         if (upCellType != MapDef.CELL_TYPE_WALL && upCellType != MapDef.CELL_TYPE_SOLID_WALL
              && downCellType != MapDef.CELL_TYPE_WALL && downCellType != MapDef.CELL_TYPE_SOLID_WALL)
             return Rool(MapDef.DOOR_CHANCE); ;
-        
+
         if (leftCellType != MapDef.CELL_TYPE_WALL && leftCellType != MapDef.CELL_TYPE_SOLID_WALL
              && rightCellType != MapDef.CELL_TYPE_WALL && rightCellType != MapDef.CELL_TYPE_SOLID_WALL)
             return Rool(MapDef.DOOR_CHANCE); ;
@@ -349,7 +347,7 @@ public class MapData
     private void GenerateRoomDoor(Room room)
     {
         // 房间外围初始化为实体墙
-        for (int i = room.Left - 1; i <= room.Right + 1; i++)
+        for (int i = room.Left; i <= room.Right; i++)
         {
             if (CheckCanChangeToDoor(i, room.Top + 1))
             {
@@ -362,7 +360,7 @@ public class MapData
                 return;
             }
         }
-        for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
+        for (int i = room.Bottom; i <= room.Top; i++)
         {
             if (CheckCanChangeToDoor(room.Left - 1, i))
             {
@@ -380,9 +378,42 @@ public class MapData
     public void GenerateDoors()
     {
         // 生成门
-        foreach(Room room in _allRooms)
+        foreach (Room room in _allRooms)
         {
             GenerateRoomDoor(room);
+        }
+    }
+
+    public void CarveDeadEnds()
+    {
+        var done = false;
+
+        while (!done)
+        {
+            done = true;
+
+            for(int i =0;i<_workSpaceWidth;i++)
+            {
+                for(int j = 0;j<_workSpaceHeight;j++)
+                {
+                    Vector2Int pos = new Vector2Int(i, j);
+                    if (GetCellType(pos) != MapDef.CELL_TYPE_FLOOR) continue;
+                    int exists = 0;
+                    for (int m = 0;m<MapDef._neighbors_1.Length;m++)
+                    {
+                        Vector2Int offset = MapDef._neighbors_1[m];
+                        if(GetCellType(pos+ MapDef._neighbors_1[m]) != MapDef.CELL_TYPE_WALL)
+                        {
+                            exists++;
+                        }
+                    }
+
+                    if (exists != 1) continue;
+
+                    done = false;
+                    _mapCellType[pos.x, pos.y] = MapDef.CELL_TYPE_WALL;
+                }
+            }
         }
     }
 

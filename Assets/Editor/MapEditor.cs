@@ -107,6 +107,12 @@ public class MapEditor : EditorWindow
             mapGen.GenerateDoors();
             mapGen.RefreshMapView();
         }
+        
+        if (GUILayout.Button("反雕刻"))
+        {
+            mapGen.CarveDeadEnds();
+            mapGen.RefreshMapView();
+        }
 
 
         if (GUILayout.Button("生成完整地图"))
