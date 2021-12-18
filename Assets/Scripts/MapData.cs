@@ -40,10 +40,10 @@ public class MapData
                 return false;
             }
 
-            if (Mathf.Abs(room.Pos.x - pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
-            {
-                return false;
-            }
+            //if (Mathf.Abs(room.Pos.x - pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
+            //{
+            //    return false;
+            //}
         }
         return true;
     }
@@ -308,10 +308,35 @@ public class MapData
                 _mapCellType[i, room.Top + 1] = MapDef.CELL_TYPE_SOLID_WALL;
                 _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_SOLID_WALL;
             }
+            
+            for (int i = room.Left - 2; i <= room.Right + 2; i++)
+            {
+                if (_mapCellType[i, room.Top + 2] == MapDef.CELL_TYPE_WALL)
+                {
+                    _mapCellType[i, room.Top + 2] = MapDef.CELL_TYPE_FLOOR;
+                }
+                if (_mapCellType[i, room.Bottom - 2] == MapDef.CELL_TYPE_WALL)
+                {
+                    _mapCellType[i, room.Bottom - 2] = MapDef.CELL_TYPE_FLOOR;
+                }
+            }
+
+
             for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
             {
                 _mapCellType[room.Left - 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
                 _mapCellType[room.Right + 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
+            }           
+            for (int i = room.Bottom - 2; i <= room.Top + 2; i++)
+            {
+                if(_mapCellType[room.Left - 2, i] == MapDef.CELL_TYPE_WALL)
+                {
+                    _mapCellType[room.Left - 2, i] = MapDef.CELL_TYPE_FLOOR;
+                }
+                if (_mapCellType[room.Right + 2, i] == MapDef.CELL_TYPE_WALL)
+                { 
+                    _mapCellType[room.Right + 2, i] = MapDef.CELL_TYPE_FLOOR;
+                }
             }
         }
     }
@@ -401,7 +426,6 @@ public class MapData
                     int exists = 0;
                     for (int m = 0;m<MapDef._neighbors_1.Length;m++)
                     {
-                        Vector2Int offset = MapDef._neighbors_1[m];
                         if(GetCellType(pos+ MapDef._neighbors_1[m]) != MapDef.CELL_TYPE_WALL)
                         {
                             exists++;
