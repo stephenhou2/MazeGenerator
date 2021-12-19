@@ -22,35 +22,28 @@ public class MapData
         return _allRooms;
     }
 
-    private bool CheckRoomCanCreate(Vector2Int pos, int halfWidth, int halfHeight)
+    private bool CheckRoomCanCreate(Vector2Int pos, int width, int height)
     {
-        if (pos.x - halfWidth <= 0
-            || pos.x + halfWidth >= _workSpaceWidth
-            || pos.y - halfHeight <= 0
-            || pos.y + halfHeight >= _workSpaceHeight)
+        if (   pos.x  < 2 || pos.x + width > _workSpaceWidth-2 
+            ||pos.y  < 2 || pos.y + height > _workSpaceHeight-2)
         {
             return false;
         }
 
         foreach (Room room in _allRooms)
         {
-            if (Mathf.Abs(room.Pos.x - pos.x) < room.Width_Half + halfWidth + 2
-                && Mathf.Abs(room.Pos.y - pos.y) < room.Height_Half + halfHeight + 2)
+            if(room.Overlaps(new RectInt(pos,new Vector2Int(width,height))))
             {
                 return false;
             }
-
-            //if (Mathf.Abs(room.Pos.x - pos.x) % 2 == 1 || Mathf.Abs(room.Pos.y - pos.y) % 2 == 1)
-            //{
-            //    return false;
-            //}
         }
+
         return true;
     }
 
-    public void AddNewRoom(Vector2Int pos, int halfWidth, int halfHeight)
+    public void AddNewRoom(Vector2Int pos, int width, int height)
     {
-        Room room = new Room(pos, halfWidth, halfHeight);
+        Room room = new Room(pos, width, height);
         _allRooms.Add(room);
 
         // 房间所在的所有格子，设置为房间
@@ -63,11 +56,11 @@ public class MapData
         }
     }
 
-    public bool TryAddRoom(Vector2Int pos, int halfWidth, int halfHeight)
+    public bool TryAddRoom(Vector2Int pos, int width, int height)
     {
-        if (CheckRoomCanCreate(pos, halfWidth, halfHeight))
+        if (CheckRoomCanCreate(pos, width, height))
         {
-            AddNewRoom(pos, halfWidth, halfHeight);
+            AddNewRoom(pos, width, height);
             return true;
         }
 
@@ -104,7 +97,7 @@ public class MapData
         for (int m = 0; m < MapDef.FULL_NEIGHBORS.Length; m++)
         {
             int type = GetCellType(pos.x + MapDef.FULL_NEIGHBORS[m].x, pos.y + MapDef.FULL_NEIGHBORS[m].y);
-            if (type != MapDef.CELL_TYPE_WALL && type != MapDef.CELL_TYPE_SOLID_WALL)
+            if (type != MapDef.CELL_TYPE_WALL )
             {
                 return false;
             }
@@ -223,9 +216,9 @@ public class MapData
 
     public void GenerateFullMaze()
     {
-        for (int i = 1; i < _workSpaceWidth; i += 2)
+        for (int i = 1; i < _workSpaceWidth-1; i += 2)
         {
-            for (int j = 1; j < _workSpaceHeight; j += 2)
+            for (int j = 1; j < _workSpaceHeight-1; j += 2)
             {
                 if (_mapCellType[i, j] != MapDef.CELL_TYPE_WALL)
                 {
@@ -250,15 +243,15 @@ public class MapData
         while (cnt < maxTry)
         {
             // 房间的宽高
-            int width_half = Random.Range(minSize, maxSize);
-            int height_half = Random.Range(minSize, maxSize);
+            int width= Random.Range(minSize, maxSize) * 2 + 1;
+            int height = Random.Range(minSize, maxSize) * 2 + 1;
 
-            int randomPosX = Random.Range(1 + width_half + 1, _workSpaceWidth - 1 - width_half - 1);
-            int randomPosY = Random.Range(1 + height_half + 1, _workSpaceHeight - 1 - height_half - 1);
+            int randomPosX = Random.Range(1, (_workSpaceWidth-1-width)/2) * 2 + 1;
+            int randomPosY = Random.Range(1, (_workSpaceHeight -1-height)/2) * 2 + 1;
 
             Vector2Int pos = new Vector2Int(randomPosX, randomPosY);
 
-            TryAddRoom(pos, width_half, height_half);
+            TryAddRoom(pos, width, height);
             cnt++;
         }
     }
@@ -282,65 +275,6 @@ public class MapData
         }
     }
 
-    public void MapBorderToWall()
-    {
-        // 最外围初始化为实体墙
-        for (int i = 0; i < _workSpaceWidth; i++)
-        {
-            _mapCellType[i, 0] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[i, _workSpaceHeight - 1] = MapDef.CELL_TYPE_SOLID_WALL;
-        }
-
-        for (int i = 0; i < _workSpaceHeight; i++)
-        {
-            _mapCellType[0, i] = MapDef.CELL_TYPE_SOLID_WALL;
-            _mapCellType[_workSpaceWidth - 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
-        }
-    }
-
-    public void RoomBorderToWall()
-    {
-        foreach (Room room in _allRooms)
-        {
-            // 房间外围初始化为实体墙
-            for (int i = room.Left - 1; i <= room.Right + 1; i++)
-            {
-                _mapCellType[i, room.Top + 1] = MapDef.CELL_TYPE_SOLID_WALL;
-                _mapCellType[i, room.Bottom - 1] = MapDef.CELL_TYPE_SOLID_WALL;
-            }
-            
-            for (int i = room.Left - 2; i <= room.Right + 2; i++)
-            {
-                if (_mapCellType[i, room.Top + 2] == MapDef.CELL_TYPE_WALL)
-                {
-                    _mapCellType[i, room.Top + 2] = MapDef.CELL_TYPE_FLOOR;
-                }
-                if (_mapCellType[i, room.Bottom - 2] == MapDef.CELL_TYPE_WALL)
-                {
-                    _mapCellType[i, room.Bottom - 2] = MapDef.CELL_TYPE_FLOOR;
-                }
-            }
-
-
-            for (int i = room.Bottom - 1; i <= room.Top + 1; i++)
-            {
-                _mapCellType[room.Left - 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
-                _mapCellType[room.Right + 1, i] = MapDef.CELL_TYPE_SOLID_WALL;
-            }           
-            for (int i = room.Bottom - 2; i <= room.Top + 2; i++)
-            {
-                if(_mapCellType[room.Left - 2, i] == MapDef.CELL_TYPE_WALL)
-                {
-                    _mapCellType[room.Left - 2, i] = MapDef.CELL_TYPE_FLOOR;
-                }
-                if (_mapCellType[room.Right + 2, i] == MapDef.CELL_TYPE_WALL)
-                { 
-                    _mapCellType[room.Right + 2, i] = MapDef.CELL_TYPE_FLOOR;
-                }
-            }
-        }
-    }
-
     private bool Rool(float chance)
     {
         float v = Random.Range(0, 1f);
@@ -355,15 +289,15 @@ public class MapData
         int leftCellType = GetCellType(x - 1, y);
         int rightCellType = GetCellType(x + 1, y);
 
-        if (curCellType != MapDef.CELL_TYPE_WALL && curCellType != MapDef.CELL_TYPE_SOLID_WALL)
+        if (curCellType != MapDef.CELL_TYPE_WALL)
             return false;
 
-        if (upCellType != MapDef.CELL_TYPE_WALL && upCellType != MapDef.CELL_TYPE_SOLID_WALL
-             && downCellType != MapDef.CELL_TYPE_WALL && downCellType != MapDef.CELL_TYPE_SOLID_WALL)
+        if (upCellType != MapDef.CELL_TYPE_WALL 
+             && downCellType != MapDef.CELL_TYPE_WALL)
             return Rool(MapDef.DOOR_CHANCE); ;
 
-        if (leftCellType != MapDef.CELL_TYPE_WALL && leftCellType != MapDef.CELL_TYPE_SOLID_WALL
-             && rightCellType != MapDef.CELL_TYPE_WALL && rightCellType != MapDef.CELL_TYPE_SOLID_WALL)
+        if (leftCellType != MapDef.CELL_TYPE_WALL 
+             && rightCellType != MapDef.CELL_TYPE_WALL )
             return Rool(MapDef.DOOR_CHANCE); ;
 
         return false;

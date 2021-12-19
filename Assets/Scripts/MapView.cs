@@ -16,13 +16,13 @@ public class MapView : MonoBehaviour
     private int WorkSpaceWidth;
     private int WorkSpaceHeight;
 
-    public  void AddRoomView(Vector2Int pos, int halfWidth, int halfHeight)
+    public  void AddRoomView(Vector2Int pos, int width, int height)
     {
         GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.transform.parent = RoomNode.transform;
 
-        quad.transform.position = new Vector3(pos.x , pos.y , 0);
-        quad.transform.localScale = new Vector3(1+2*halfWidth, 1+2*halfHeight, 1);
+        quad.transform.position = new Vector3(pos.x+width/2 , pos.y+height/2 , 0);
+        quad.transform.localScale = new Vector3(width, height, 1);
         quad.transform.rotation = Quaternion.identity;
         quad.name = "_ROOM_";
         quad.GetComponent<MeshRenderer>().material = roomMat;

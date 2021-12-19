@@ -4,22 +4,47 @@ using UnityEngine;
 
 public class Room
 {
-    public Vector2Int Pos;
-    public int Width_Half;
-    public int Height_Half;
+    private RectInt _rect;
 
-    public Room(Vector2Int pos,int halfWidth,int halfHeight)
+    public Room(Vector2Int pos,int width,int height)
     {
-        this.Pos = pos;
-        this.Width_Half = halfWidth;
-        this.Height_Half = halfHeight;
+        this._rect = new RectInt(pos, new Vector2Int(width, height));
+    }
+
+    public bool Overlaps(RectInt rect)
+    {
+        return _rect.Overlaps(rect);
+    }
+
+    public Vector2Int Pos
+    {
+        get
+        {
+            return _rect.position;
+        }
+    }
+
+    public int Width
+    {
+        get
+        {
+            return _rect.size.x;
+        }
+    }
+
+    public int Height
+    {
+        get
+        {
+            return _rect.size.y;
+        }
     }
 
     public int Left
     {
         get
         {
-            return Pos.x - Width_Half;
+            return _rect.xMin;
         }
     }
 
@@ -27,7 +52,7 @@ public class Room
     {
         get
         {
-            return Pos.x + Width_Half;
+            return _rect.xMax-1;
         }
     }
     
@@ -35,7 +60,7 @@ public class Room
     {
         get
         {
-            return Pos.y - Height_Half;
+            return _rect.yMin;
         }
     }
 
@@ -43,7 +68,7 @@ public class Room
     {
         get
         {
-            return Pos.y + Height_Half;
+            return _rect.yMax-1;
         }
     }
 }
