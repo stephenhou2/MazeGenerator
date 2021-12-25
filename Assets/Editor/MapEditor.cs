@@ -50,6 +50,8 @@ public class MapEditor : EditorWindow
 
     }
 
+
+
     private void OnGUI()
     {
         if(mapGen == null)
@@ -107,6 +109,12 @@ public class MapEditor : EditorWindow
         {
             mapGen.GenerateWholeMap();
             mapGen.RefreshMapView();
+        }
+
+
+        if (GUILayout.Button("初始化角色"))
+        {
+            mapGen.CreateAgent();
         }
     }
 }

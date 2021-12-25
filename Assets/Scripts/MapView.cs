@@ -10,8 +10,8 @@ public class MapView : MonoBehaviour
 
     public Material roomMat;
     public Material wallMat;
-    public Material solidWallMat;
     public Material doorMat;
+    public Material agentMat;
 
     private int WorkSpaceWidth;
     private int WorkSpaceHeight;
@@ -42,19 +42,6 @@ public class MapView : MonoBehaviour
         //quad.hideFlags = HideFlags.HideInHierarchy;
     }
 
-
-    public void AddSolidWallView(Vector2Int pos)
-    {
-        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        quad.transform.parent = WallNode.transform;
-
-        quad.transform.position = new Vector3(pos.x, pos.y, 0);
-        quad.transform.localScale = Vector3.one;
-        quad.transform.rotation = Quaternion.identity;
-        quad.name = "_SOLID_WALL_";
-        quad.GetComponent<MeshRenderer>().material = solidWallMat;
-        //quad.hideFlags = HideFlags.HideInHierarchy;
-    }
 
     public void AddDoorView(Vector2Int pos)
     {
@@ -90,7 +77,7 @@ public class MapView : MonoBehaviour
         for (int i = DoorNode.transform.childCount - 1; i >= 0; i--)
         {
             DestroyImmediate(DoorNode.transform.GetChild(i).gameObject);
-        }
+        } 
 
         InitializeMapView(mapWidth, mapHeight);
     }
@@ -102,13 +89,6 @@ public class MapView : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        //Gizmos.color = Color.green;
-
-        //Gizmos.DrawLine(new Vector3(0, 0, 0), new Vector3(WorkSpaceWidth, 0, 0));
-        //Gizmos.DrawLine(new Vector3(0, 0, 0), new Vector3(0, WorkSpaceHeight, 0));
-        //Gizmos.DrawLine(new Vector3(WorkSpaceWidth, 0, 0), new Vector3(WorkSpaceWidth, WorkSpaceHeight, 0));
-        //Gizmos.DrawLine(new Vector3(0, WorkSpaceHeight, 0), new Vector3(WorkSpaceWidth, WorkSpaceHeight, 0));
-
         if(ShowGridLine)
         {
             Gizmos.color = Color.grey;

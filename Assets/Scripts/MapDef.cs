@@ -17,10 +17,10 @@ public static class MapDef
 
     public static float DOOR_CHANCE = 0.3f;
 
-    public static int DIR_UP = 0;
-    public static int DIR_LEFT = 1;
-    public static int DIR_DOWN = 2;
-    public static int DIR_RIGHT = 3;
+    public const int DIR_UP = 0;
+    public const int DIR_LEFT = 1;
+    public const int DIR_DOWN = 2;
+    public const int DIR_RIGHT = 3;
 
     public static int[] DIRECTION_MAP = new int[]
     {
@@ -79,5 +79,5 @@ public static class MapDef
             new Vector2Int(1, -1),
             new Vector2Int(0, -1),
             new Vector2Int(-1, -1),
-};
+    };
 }

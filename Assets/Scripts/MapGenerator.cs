@@ -19,9 +19,12 @@ public class MapGenerator:MonoBehaviour
     [HideInInspector]
     public int RoomMaxSize_Half = 7;
 
+
+    public Agent agent;
     private MapView mv;
     private MapData md;
 
+    private int lastDirection;
     public void InitializeMapGenerator()
     {
         var viewNode = transform.Find("_MAP_VIEW");
@@ -107,6 +110,46 @@ public class MapGenerator:MonoBehaviour
         md.CarveDeadEnds();
     }
 
+    public void CreateAgent()
+    {
+        if(agent == null)
+        {
+            return;
+        }
+        var rooms = md.GetAllRoomData();
+        var roomIndex = Random.Range(0, rooms.Count);
+        var room = rooms[roomIndex];
+        int randomX = Random.Range(room.Left, room.Right + 1);
+        int randomY = Random.Range(room.Bottom, room.Top + 1);
+        agent.InitializedAgent(new Vector2Int(randomX, randomY));
+    }
+
+    private void AgentMove(int direction)
+    {
+        if (agent == null) return;
+
+        if(direction == MapDef.DIR_UP && md.GetCellType(agent.pos+MapDef.UP) != MapDef.CELL_TYPE_WALL)
+        {
+            agent.MoveTo(agent.pos + MapDef.UP);
+            lastDirection = MapDef.DIR_UP;
+        }else if(direction == MapDef.DIR_DOWN && md.GetCellType(agent.pos+MapDef.DOWN) != MapDef.CELL_TYPE_WALL)
+        {
+            agent.MoveTo(agent.pos + MapDef.DOWN);
+            lastDirection = MapDef.DIR_DOWN;
+        }
+        else if(direction == MapDef.DIR_LEFT && md.GetCellType(agent.pos+MapDef.LEFT) != MapDef.CELL_TYPE_WALL)
+        {
+            agent.MoveTo(agent.pos + MapDef.LEFT);
+            lastDirection = MapDef.DIR_LEFT;
+        }
+        else if(direction == MapDef.DIR_RIGHT && md.GetCellType(agent.pos+MapDef.RIGHT) != MapDef.CELL_TYPE_WALL)
+        {
+            agent.MoveTo(agent.pos + MapDef.RIGHT);
+            lastDirection = MapDef.DIR_RIGHT;
+        }
+    }
+
+
     public void GenerateWholeMap()
     {
         // 1. 数据层，表现层重置
@@ -130,5 +173,25 @@ public class MapGenerator:MonoBehaviour
 
         // 7.更新表现层
         RefreshMapView();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            AgentMove(MapDef.DIR_UP);
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            AgentMove(MapDef.DIR_DOWN);
+        }
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            AgentMove(MapDef.DIR_LEFT);
+        }
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            AgentMove(MapDef.DIR_RIGHT);
+        }
     }
 }
